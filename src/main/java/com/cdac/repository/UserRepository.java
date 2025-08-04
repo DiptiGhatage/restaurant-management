@@ -10,7 +10,8 @@ import com.cdac.entites.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     // You can add custom query methods if needed
-    // Optional<User> findByUsername(String username);
+	Optional<User> findByName(String name);
+	
 	Optional<User> findByEmail(String email);
 
 }
