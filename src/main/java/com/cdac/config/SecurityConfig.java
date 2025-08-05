@@ -1,5 +1,7 @@
 package com.cdac.config;
 
+import java.util.Arrays;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,14 +16,16 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
 import com.cdac.security.JwtAuthenticationFilter;
 import com.cdac.security.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
-//This is required for @PreAuthorize to work
-@EnableMethodSecurity 
-
+@EnableMethodSecurity // For @PreAuthorize
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -36,38 +40,47 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) 
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ new way
+            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                
-            		.requestMatchers("/api/auth/login", "/api/auth/register", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-            		// ADMIN-only access
-            	    .requestMatchers("/api/menu/**", "/api/booking/all").hasRole("ADMIN")
+                .requestMatchers("/api/auth/login", "/api/auth/register", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-            	    // USER-only access (Booking, Order, Bill, Payment)
-            	    .requestMatchers(
-            	        "/api/order/**",
-            	        "/api/booking/**",
-            	        "/api/review/**",
-            	        "/api/bill/**",
-            	        "/api/payment/**"
-            	    ).hasRole("USER")
+                // ADMIN-only access
+                .requestMatchers("/api/menu/**", "/api/booking/all").hasRole("ADMIN")
 
+                // USER-only access
+                .requestMatchers(
+                    "/api/order/**",
+                    "/api/booking/**",
+                    "/api/review/**",
+                    "/api/bill/**",
+                    "/api/payment/**"
+                ).hasRole("USER")
 
-                    // Menu view access for both USER and ADMIN
-                    .requestMatchers("/api/menu", "/api/menu/**").hasAnyRole("USER", "ADMIN")
+                // Common access for both
+                .requestMatchers("/api/menu", "/api/menu/**").hasAnyRole("USER", "ADMIN")
 
-                    // All other requests require authentication
-                    .anyRequest().authenticated()
-
+                // All other requests require authentication
+                .anyRequest().authenticated()
             )
-            
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            
             .authenticationProvider(authenticationProvider())
-            
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(Arrays.asList("*")); // For frontend-dev flexibility
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        configuration.setAllowCredentials(true); // Allow cookies & auth headers
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // Apply to all paths
+        return source;
     }
 
     @Bean

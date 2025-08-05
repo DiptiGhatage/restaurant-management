@@ -11,6 +11,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -42,7 +43,7 @@ public class RestaurantTable extends BaseEntity {
     @JsonIgnore
     private List<Booking> bookings;
     //Add this block for amenities
-    @ElementCollection(targetClass = AmenityType.class)
+    @ElementCollection(targetClass = AmenityType.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "table_amenities", joinColumns = @JoinColumn(name = "restaurant_table_id", referencedColumnName = "id"))
     @Column(name = "amenity", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -57,6 +58,7 @@ public class RestaurantTable extends BaseEntity {
     
    
     @OneToMany(mappedBy = "table")
+    @JsonIgnore
     private List<Order> orders;
 
 
