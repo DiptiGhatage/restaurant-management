@@ -35,29 +35,30 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Endpoint
+    //  LOGIN Endpoint
     @PostMapping("/login")
     public AuthResponse login(@RequestBody AuthRequest request) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         String token = jwtService.generateToken(userDetails);
 
-        return new AuthResponse(token, "Login successful");
+        // Get full User from DB
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+
+        //  Return user object in response
+        return new AuthResponse(token, "Login successful", user.getRole().name(), user);
     }
 
-    //REGISTER Endpoint
+    //  USER REGISTER Endpoint
     @PostMapping("/register")
     public AuthResponse register(@RequestBody RegisterRequest request) {
-
-        // Check if user already exists
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            return new AuthResponse(null, "Email already registered!");
+            return new AuthResponse(null, "Email already registered!", null, null);
         }
 
-        // Save user
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
@@ -65,22 +66,21 @@ public class AuthController {
         user.setRole(Role.USER);
         userRepository.save(user);
 
-        // Generate token
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                List.of(() -> "ROLE_USER")
+            user.getEmail(),
+            user.getPassword(),
+            List.of(() -> "ROLE_USER")
         );
 
         String token = jwtService.generateToken(userDetails);
-        return new AuthResponse(token, "User registered successfully");
+        return new AuthResponse(token, "User registered successfully", "USER", user);
     }
-    
- // Admin Register Endpoint
+
+    //  ADMIN REGISTER Endpoint
     @PostMapping("/register-admin")
     public AuthResponse registerAdmin(@RequestBody RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            return new AuthResponse(null, "Email already registered!");
+            return new AuthResponse(null, "Email already registered!", null, null);
         }
 
         User admin = new User();
@@ -91,15 +91,12 @@ public class AuthController {
         userRepository.save(admin);
 
         UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-                admin.getEmail(),
-                admin.getPassword(),
-                List.of(() -> "ROLE_ADMIN")
+            admin.getEmail(),
+            admin.getPassword(),
+            List.of(() -> "ROLE_ADMIN")
         );
 
         String token = jwtService.generateToken(userDetails);
-        return new AuthResponse(token, "Admin registered successfully");
+        return new AuthResponse(token, "Admin registered successfully", "ADMIN", admin);
     }
 }
-
-
-

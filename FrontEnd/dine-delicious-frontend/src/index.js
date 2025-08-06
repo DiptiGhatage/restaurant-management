@@ -4,13 +4,18 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
-// ✅ Add Bootstrap CSS
+//  Add Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+//  Import AuthProvider
+import AuthProvider from './context/AuthProvider';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <AuthProvider> {/*Wrap App inside AuthProvider */}
+      <App />
+    </AuthProvider>
   </React.StrictMode>
 );
 

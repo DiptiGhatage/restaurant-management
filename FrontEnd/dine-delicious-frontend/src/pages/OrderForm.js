@@ -1,113 +1,119 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from '../utils/axiosInstance';
-import { useNavigate } from 'react-router-dom';
 
-function OrderForm() {
+const OrderForm = () => {
   const [menuItems, setMenuItems] = useState([]);
-  const [selectedItems, setSelectedItems] = useState({});
   const [tableId, setTableId] = useState('');
-  const navigate = useNavigate();
+  const [tables, setTables] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
 
   useEffect(() => {
-    fetchMenu();
+    axios.get('/menu')
+      .then((res) => setMenuItems(res.data))
+      .catch((err) => console.error("Failed to load menu items", err));
+
+    axios.get('/tables')
+      .then((res) => setTables(res.data))
+      .catch((err) => console.error("Failed to load tables", err));
   }, []);
 
-  const fetchMenu = async () => {
-    try {
-      const res = await axios.get('/api/menu');
-      setMenuItems(res.data);
-    } catch (err) {
-      console.error('Failed to load menu', err);
+  const addItem = (menuItem) => {
+    const existing = selectedItems.find((i) => i.menuItemId === menuItem.id);
+    if (existing) {
+      setSelectedItems(selectedItems.map(i =>
+        i.menuItemId === menuItem.id ? { ...i, quantity: i.quantity + 1 } : i
+      ));
+    } else {
+      setSelectedItems([...selectedItems, { menuItemId: menuItem.id, quantity: 1 }]);
     }
   };
 
-  const handleQuantityChange = (menuItemId, quantity) => {
-    setSelectedItems(prev => ({
-      ...prev,
-      [menuItemId]: quantity,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const items = Object.entries(selectedItems)
-      .filter(([id, qty]) => qty > 0)
-      .map(([menuItemId, quantity]) => ({ menuItemId, quantity }));
-
-    if (items.length === 0 || !tableId) {
-      alert('Select at least one item and provide table ID.');
+  const handleOrder = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      alert("User not logged in");
       return;
     }
 
-    try {
-      await axios.post('/api/order', {
-        tableId,
-        items,
-      });
+    const orderRequest = {
+      userId: user.id,
+      tableId,
+      items: selectedItems  // ✅ Correct field name for backend
+    };
 
-      alert('Order placed successfully!');
-      navigate('/my-orders');
+    console.log("Sending Order:", orderRequest);
+
+    try {
+      await axios.post('/orders', orderRequest);
+      alert('Order placed successfully');
+      setSelectedItems([]);
+      setTableId('');
     } catch (err) {
-      console.error('Order failed', err);
-      alert('Failed to place order.');
+      console.error("Order failed", err);
+      alert("Failed to place order. Please try again.");
     }
   };
 
   return (
-    <div className="container mt-5">
-      <h3 className="text-center mb-4">🛒 Place Your Order</h3>
+    <div className="p-4">
+      <h2 className="text-xl font-bold mb-4">🧾 Place Your Order</h2>
 
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label>Table ID:</label>
-          <input
-            type="text"
-            className="form-control"
-            value={tableId}
-            onChange={(e) => setTableId(e.target.value)}
-            placeholder="Enter your table ID"
-            required
-          />
+      <div className="grid grid-cols-2 gap-4">
+        {menuItems.map(item => (
+          <div key={item.id} className="border rounded-xl p-3 shadow">
+            <h3 className="font-semibold">{item.name}</h3>
+            <p>{item.description}</p>
+            <p className="text-green-600 font-bold">₹{item.price}</p>
+            <button
+              onClick={() => addItem(item)}
+              className="bg-blue-500 text-white px-2 py-1 rounded mt-2"
+            >
+              Add
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-6">
+        <label className="block mb-2">Select Table:</label>
+        <select
+          className="border p-1 rounded w-full max-w-sm"
+          value={tableId}
+          onChange={(e) => setTableId(e.target.value)}
+        >
+          <option value="">-- Select Table --</option>
+          {tables.map(table => (
+            <option key={table.id} value={table.id}>
+              {table.tableNumber}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {selectedItems.length > 0 && (
+        <div className="mt-4">
+          <h4 className="font-semibold">🛒 Selected Items:</h4>
+          <ul>
+            {selectedItems.map((item, idx) => {
+              const menuItem = menuItems.find(mi => mi.id === item.menuItemId);
+              return (
+                <li key={idx}>
+                  {menuItem?.name} x {item.quantity}
+                </li>
+              );
+            })}
+          </ul>
         </div>
+      )}
 
-        <table className="table table-bordered table-striped">
-          <thead className="table-dark">
-            <tr>
-              <th>Menu Item</th>
-              <th>Price</th>
-              <th>Quantity</th>
-            </tr>
-          </thead>
-          <tbody>
-            {menuItems.map((item) => (
-              <tr key={item.id}>
-                <td>{item.name}</td>
-                <td>₹{item.price.toFixed(2)}</td>
-                <td>
-                  <input
-                    type="number"
-                    min="0"
-                    className="form-control"
-                    value={selectedItems[item.id] || ''}
-                    onChange={(e) =>
-                      handleQuantityChange(item.id, parseInt(e.target.value) || 0)
-                    }
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        <div className="text-center">
-          <button type="submit" className="btn btn-primary px-4">
-            Place Order
-          </button>
-        </div>
-      </form>
+      <button
+        onClick={handleOrder}
+        className="bg-green-600 text-white px-4 py-2 mt-6 rounded"
+      >
+        ✅ Place Order
+      </button>
     </div>
   );
-}
+};
 
 export default OrderForm;

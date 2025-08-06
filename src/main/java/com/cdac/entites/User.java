@@ -37,6 +37,7 @@ public class User extends BaseEntity {
     
  // One user can book multiple tables (inverse of bookedBy in RestaurantTable)
     @OneToMany(mappedBy = "bookedBy",cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<RestaurantTable> bookedTables;
     
      //One user can make many bookings
@@ -45,9 +46,11 @@ public class User extends BaseEntity {
     private List<Booking> bookings;
     
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Order> orders;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Review> reviews;
 
 }

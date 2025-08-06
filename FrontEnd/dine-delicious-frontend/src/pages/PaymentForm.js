@@ -1,78 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import axiosInstance from '../utils/axiosInstance';
-import { useAuth } from '../context/AuthProvider';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import axiosInstance from "../utils/axiosInstance";
 
 const PaymentForm = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const [orderId, setOrderId] = useState("");
+  const [mode, setMode] = useState("");  // PaymentMode: CASH, CARD, UPI, WALLET
+  const [message, setMessage] = useState("");
 
-  const [orders, setOrders] = useState([]);
-  const [selectedOrderId, setSelectedOrderId] = useState('');
-  const [paymentMode, setPaymentMode] = useState('CASH');
-
-  // 🛒 Fetch user's orders for payment
-  useEffect(() => {
-    axiosInstance.get('/order/user')
-      .then(response => setOrders(response.data))
-      .catch(error => console.error('Error fetching orders', error));
-  }, []);
-
-  // 💳 Submit payment
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!orderId || !mode) {
+      setMessage("Please fill all fields");
+      return;
+    }
+
     try {
       const payload = {
-        orderId: selectedOrderId,
-        paymentMode: paymentMode,
+        orderId: parseInt(orderId),
+        mode: mode
       };
 
-      await axiosInstance.post('/payment', payload);
-      alert(' Payment Successful!');
-      navigate('/menu'); // or to payment success page
+      const response = await axiosInstance.post("/payments", payload);
+      setMessage(`Payment successful! Payment ID: ${response.data.id}`);
+      setOrderId("");
+      setMode("");
     } catch (error) {
-      console.error('Payment failed:', error);
-      alert(' Payment failed. Please try again.');
+      console.error("Payment failed", error);
+      setMessage("Payment failed. Try again.");
     }
   };
 
   return (
-    <div className="container mt-4">
-      <h2 className="text-center mb-4">💳 Make a Payment</h2>
-      <form onSubmit={handleSubmit} className="card p-4 shadow-sm">
-        <div className="form-group mb-3">
-          <label>Select Order</label>
-          <select
-            className="form-control"
-            value={selectedOrderId}
-            onChange={(e) => setSelectedOrderId(e.target.value)}
+    <div style={{ maxWidth: "400px", margin: "2rem auto", padding: "1rem", border: "1px solid #ccc", borderRadius: "8px" }}>
+      <h2>Make a Payment</h2>
+      {message && <p style={{ color: message.includes("successful") ? "green" : "red" }}>{message}</p>}
+
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: "1rem" }}>
+          <label>Order ID:</label><br />
+          <input
+            type="number"
+            value={orderId}
+            onChange={(e) => setOrderId(e.target.value)}
             required
-          >
-            <option value="">-- Select an Order --</option>
-            {orders.map(order => (
-              <option key={order.id} value={order.id}>
-                {order.orderNumber} - ₹{order.totalAmount}
-              </option>
-            ))}
-          </select>
+            style={{ width: "100%", padding: "8px" }}
+          />
         </div>
 
-        <div className="form-group mb-3">
-          <label>Payment Mode</label>
+        <div style={{ marginBottom: "1rem" }}>
+          <label>Payment Mode:</label><br />
           <select
-            className="form-control"
-            value={paymentMode}
-            onChange={(e) => setPaymentMode(e.target.value)}
+            value={mode}
+            onChange={(e) => setMode(e.target.value)}
             required
+            style={{ width: "100%", padding: "8px" }}
           >
+            <option value="">-- Select Payment Mode --</option>
             <option value="CASH">Cash</option>
             <option value="CARD">Card</option>
             <option value="UPI">UPI</option>
+            <option value="WALLET">Wallet</option>
           </select>
         </div>
 
-        <button className="btn btn-success w-100" type="submit">
+        <button type="submit" style={{ padding: "10px 20px", cursor: "pointer" }}>
           Pay Now
         </button>
       </form>

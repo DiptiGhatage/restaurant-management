@@ -5,7 +5,7 @@ const MyOrders = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    axios.get('/api/order/my-orders')
+    axios.get('/orders/my-orders')
       .then(res => setOrders(res.data))
       .catch(err => console.error("Failed to load orders", err));
   }, []);
@@ -16,23 +16,24 @@ const MyOrders = () => {
       {orders.length === 0 ? (
         <p>No orders found.</p>
       ) : (
-        <table className="table table-bordered">
-          <thead>
+        <table className="table table-striped table-bordered">
+          <thead className="table-dark">
             <tr>
-              <th>Order ID</th>
+              <th>Order #</th>
               <th>Table</th>
               <th>Items</th>
-              <th>Total Price</th>
-              <th>Time</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Placed At</th>
             </tr>
           </thead>
           <tbody>
             {orders.map(order => (
               <tr key={order.id}>
-                <td>{order.id}</td>
+                <td>{order.orderNumber}</td>
                 <td>{order.tableId}</td>
                 <td>
-                  <ul>
+                  <ul className="mb-0">
                     {order.items.map(item => (
                       <li key={item.id}>
                         {item.menuItemName} x {item.quantity}
@@ -40,7 +41,12 @@ const MyOrders = () => {
                     ))}
                   </ul>
                 </td>
-                <td>₹{order.totalPrice}</td>
+                <td>₹{order.totalAmount}</td> {/* <-- इथे बदल */}
+                <td>
+                  <span className={`badge text-bg-${getStatusColor(order.status)}`}>
+                    {order.status}
+                  </span>
+                </td>
                 <td>{new Date(order.createdAt).toLocaleString()}</td>
               </tr>
             ))}
@@ -49,6 +55,23 @@ const MyOrders = () => {
       )}
     </div>
   );
+};
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'PLACED':
+      return 'primary';
+    case 'PREPARING':
+      return 'warning';
+    case 'SERVED':
+      return 'info';
+    case 'COMPLETED':
+      return 'success';
+    case 'CANCELLED':
+      return 'danger';
+    default:
+      return 'secondary';
+  }
 };
 
 export default MyOrders;

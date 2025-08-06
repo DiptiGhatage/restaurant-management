@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.cdac.entites.Order;
+import com.cdac.entites.User;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -26,4 +27,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "orderItems.menuItem"
         })
         List<Order> findAll();
+        
+        @EntityGraph(attributePaths = {
+                "user", 
+                "table", 
+                "orderItems", 
+                "orderItems.menuItem"
+            })
+            List<Order> findByUser(User user);
+
     }

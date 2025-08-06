@@ -43,26 +43,25 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ new way
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/register", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+            	    .requestMatchers("/api/auth/login", "/api/auth/register", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-                // ADMIN-only access
-                .requestMatchers("/api/menu/**", "/api/booking/all").hasRole("ADMIN")
+            	    // Admin-only actions (create/update/delete)
+            	    .requestMatchers("/api/menu-items", "/api/menu-items/**").hasRole("ADMIN")
 
-                // USER-only access
-                .requestMatchers(
-                    "/api/order/**",
-                    "/api/booking/**",
-                    "/api/review/**",
-                    "/api/bill/**",
-                    "/api/payment/**"
-                ).hasRole("USER")
+            	    // User or Admin can view menu
+            	    .requestMatchers("/api/menu", "/api/menu/**").hasAnyRole("USER", "ADMIN")
 
-                // Common access for both
-                .requestMatchers("/api/menu", "/api/menu/**").hasAnyRole("USER", "ADMIN")
+            	    // USER-specific routes
+            	    .requestMatchers(
+            	        "/api/order/**",
+            	        "/api/bookings/**",
+            	        "/api/review/**",
+            	        "/api/bill/**",
+            	        "/api/payment/**"
+            	    ).hasRole("USER")
 
-                // All other requests require authentication
-                .anyRequest().authenticated()
-            )
+            	    .anyRequest().authenticated()
+            	)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

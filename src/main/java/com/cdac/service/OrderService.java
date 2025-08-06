@@ -10,5 +10,7 @@ public interface OrderService {
     OrderResponse getOrderById(Long id);
     List<OrderResponse> getAllOrders();
     void cancelOrder(Long id);
+    List<OrderResponse> getOrdersByUserEmail(String email);
+
 
 }

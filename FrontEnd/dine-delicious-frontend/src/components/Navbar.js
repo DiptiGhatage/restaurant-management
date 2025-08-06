@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthProvider';
+import './Navbar.css'; // ✅ External CSS
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -12,44 +13,41 @@ const Navbar = () => {
   };
 
   return (
-    <nav style={{ padding: '10px', borderBottom: '1px solid #ccc' }}>
-      <Link to="/" style={{ marginRight: '15px' }}>Home</Link>
+    <nav className="navbar">
+      <div className="navbar-left">
+        <Link to="/menu" className="nav-link">Menu</Link>
 
-      {/* Visible to all */}
-      <Link to="/menu" style={{ marginRight: '15px' }}>Menu</Link>
+        {isAuthenticated && user?.role === 'USER' && (
+          <>
+            <Link to="/user/dashboard" className="nav-link">Dashboard</Link>
+            <Link to="/booking" className="nav-link">Book Table</Link>
+            <Link to="/my-orders" className="nav-link">My Orders</Link>
+            <Link to="/payment" className="nav-link">Make Payment</Link>
+            <Link to="/my-bookings" className="nav-link">My Bookings</Link>
+          </>
+        )}
 
-      {/* If user is authenticated and role is USER */}
-      {isAuthenticated && user?.role === 'USER' && (
-        <>
-          <Link to="/user/dashboard" style={{ marginRight: '15px' }}>Dashboard</Link>
-          <Link to="/booking" style={{ marginRight: '15px' }}>Book Table</Link>
-          <Link to="/my-orders" style={{ marginRight: '15px' }}>My Orders</Link>
-          <Link to="/payment" style={{ marginRight: '15px' }}>Make Payment</Link>
-        </>
-      )}
+        {isAuthenticated && user?.role === 'ADMIN' && (
+          <>
+            <Link to="/admin/dashboard" className="nav-link">Dashboard</Link>
+            <Link to="/admin/menu" className="nav-link">Manage Menu</Link>
+          </>
+        )}
+      </div>
 
-      {/* If user is ADMIN */}
-      {isAuthenticated && user?.role === 'ADMIN' && (
-        <>
-          <Link to="/admin/dashboard" style={{ marginRight: '15px' }}>Dashboard</Link>
-          <Link to="/admin/menu" style={{ marginRight: '15px' }}>Manage Menu</Link>
-        </>
-      )}
-
-      {/* Right side auth buttons */}
-      <span style={{ float: 'right' }}>
+      <div className="navbar-right">
         {!isAuthenticated ? (
           <>
-            <Link to="/login" style={{ marginRight: '10px' }}>Login</Link>
-            <Link to="/register">Register</Link>
+            <Link to="/login" className="nav-link">Login</Link>
+            <Link to="/register" className="nav-link">Register</Link>
           </>
         ) : (
           <>
-            <span style={{ marginRight: '10px' }}>Hi, {user?.username}</span>
-            <button onClick={handleLogout}>Logout</button>
+            <span className="nav-user">Hi, {user?.username}</span>
+            <button onClick={handleLogout} className="nav-logout">Logout</button>
           </>
         )}
-      </span>
+      </div>
     </nav>
   );
 };

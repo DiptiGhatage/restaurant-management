@@ -1,0 +1,44 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffe4e1; /* Misty Rose Pink */
+  padding: 12px 20px;
+  border-bottom: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.nav-link {
+  margin-right: 15px;
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: #c2185b; /* Darker pink on hover */
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+}
+
+.nav-user {
+  margin-right: 10px;
+  font-weight: bold;
+  color: #444;
+}
+
+.nav-logout {
+  background-color: #f06292;  /* pinkish button */
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.nav-logout:hover {
+  background-color: #ec407a;
+}

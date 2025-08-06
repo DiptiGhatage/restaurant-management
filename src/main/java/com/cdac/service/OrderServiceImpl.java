@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.cdac.custom_exception.ResourceNotFoundException;
@@ -133,4 +134,16 @@ public class OrderServiceImpl implements OrderService {
                 .items(itemResponses)
                 .build();
     }
+    @Override
+    public List<OrderResponse> getOrdersByUserEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                      .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        List<Order> orders = orderRepository.findByUser(user);
+
+        return orders.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
 }
+

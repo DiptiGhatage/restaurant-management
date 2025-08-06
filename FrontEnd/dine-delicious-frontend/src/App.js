@@ -5,37 +5,39 @@ import ProtectedRoute from './routes/ProtectedRoute';
 
 import Login from './pages/Login';
 import Register from './pages/Register';
-import MenuList from './pages/MenuList';
 import BookingForm from './pages/BookingForm';
 import OrderForm from './pages/OrderForm';
 import PaymentForm from './pages/PaymentForm';
 import UserDashboard from './pages/UserDashboard';
-import AdminDashboard from './pages/AdminDashboard'; // जर तयार नसेल तर तयार करून देतो
+import AdminDashboard from './pages/AdminDashboard';
 import Navbar from './components/Navbar';
-import Unauthorized from './pages/Unauthorized'; // correct path दे
-import MyOrders from './pages/MyOrders'; 
+import Unauthorized from './pages/Unauthorized';
+import MyOrders from './pages/MyOrders';
+import MyBookings from './pages/MyBookings';
+import MenuPageSelector from './pages/MenuPageSelector';
+
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Navbar />
+
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Shared Route (Menu view - both roles) */}
-          <Route path="/menu" element={<MenuList />} />
-
-          {/* ADMIN Routes */}
+          {/* Role-Based Menu Route */}
           <Route
-            path="/admin/menu"
+            path="/menu"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
-                <MenuList/>
+              <ProtectedRoute allowedRoles={['USER', 'ADMIN']}>
+                <MenuPageSelector />
               </ProtectedRoute>
             }
           />
+
+          {/* ADMIN Routes */}
           <Route
             path="/admin/dashboard"
             element={
@@ -54,17 +56,19 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route 
-            path="/unauthorized" 
-             element={
-             <Unauthorized />
-            } 
-           />
-         <Route
+          <Route
             path="/booking"
             element={
               <ProtectedRoute allowedRoles={['USER']}>
                 <BookingForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-bookings"
+            element={
+              <ProtectedRoute allowedRoles={['USER']}>
+                <MyBookings />
               </ProtectedRoute>
             }
           />
@@ -77,20 +81,27 @@ function App() {
             }
           />
           <Route
-           path="/my-orders"
+            path="/my-orders"
             element={
-             <MyOrders />
-            } 
+              <ProtectedRoute allowedRoles={['USER']}>
+                <MyOrders />
+              </ProtectedRoute>
+            }
           />
-
           <Route
             path="/payment"
             element={
               <ProtectedRoute allowedRoles={['USER']}>
-                <PaymentForm/>
+                <PaymentForm />
               </ProtectedRoute>
             }
           />
+
+          {/* Unauthorized */}
+          <Route path="/unauthorized" element={<Unauthorized />} />
+
+          {/* 404 fallback */}
+          <Route path="*" element={<h3>404 - Page Not Found</h3>} />
         </Routes>
       </Router>
     </AuthProvider>
