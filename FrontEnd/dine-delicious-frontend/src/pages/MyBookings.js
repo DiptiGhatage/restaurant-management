@@ -5,7 +5,7 @@ const BookingStatus = {
   PENDING: 'PENDING',
   CONFIRMED: 'CONFIRMED',
   CANCELLED: 'CANCELLED',
-  // इतर status नुसार add करू शकतो
+  
 };
 
 const MyAllBookings = () => {

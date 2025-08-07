@@ -41,7 +41,7 @@ const MyOrders = () => {
                     ))}
                   </ul>
                 </td>
-                <td>₹{order.totalAmount}</td> {/* <-- इथे बदल */}
+                <td>₹{order.totalAmount}</td> 
                 <td>
                   <span className={`badge text-bg-${getStatusColor(order.status)}`}>
                     {order.status}

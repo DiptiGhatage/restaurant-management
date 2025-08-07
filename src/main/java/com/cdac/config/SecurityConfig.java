@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -40,16 +41,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ new way
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
             	    .requestMatchers("/api/auth/login", "/api/auth/register", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-            	    // Admin-only actions (create/update/delete)
-            	    .requestMatchers("/api/menu-items", "/api/menu-items/**").hasRole("ADMIN")
+            	    .requestMatchers(HttpMethod.POST, "/api/menu-items/**").hasRole("ADMIN")
+            	    .requestMatchers(HttpMethod.PUT, "/api/menu-items/**").hasRole("ADMIN")
+            	    .requestMatchers(HttpMethod.DELETE, "/api/menu-items/**").hasRole("ADMIN")
+            	    .requestMatchers(HttpMethod.GET, "/api/menu-items/**").hasAnyRole("ADMIN", "USER")
+
 
             	    // User or Admin can view menu
-            	    .requestMatchers("/api/menu", "/api/menu/**").hasAnyRole("USER", "ADMIN")
+            	    .requestMatchers(HttpMethod.GET, "/api/menu", "/api/menu/**").hasAnyRole("USER", "ADMIN")
+
 
             	    // USER-specific routes
             	    .requestMatchers(

@@ -16,14 +16,16 @@ import MyOrders from './pages/MyOrders';
 import MyBookings from './pages/MyBookings';
 import MenuPageSelector from './pages/MenuPageSelector';
 
+
+
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Navbar />
-
         <Routes>
           {/* Public Routes */}
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
@@ -64,6 +66,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
           <Route
             path="/my-bookings"
             element={
